@@ -290,6 +290,10 @@ input{
         + Tambah Buku
     </a>
 
+    <a href="/cek-buku" class="btn-nav">
+    🔍 Cek Buku
+    </a>
+
 </div>
 
 </div>

@@ -2,29 +2,46 @@
 
 @section('content')
 
-<div class="card" style="max-width:500px;margin:auto">
+<div class="card" style="max-width:500px;margin:auto;margin-top:25px">
 
-<h1>Login LibraCoer</h1>
+    <h1 style="margin-bottom:20px">
+        Login LibraCoer
+    </h1>
 
-<br>
+    <input
+        type="email"
+        placeholder="Masukkan Email"
+    >
 
-<input type="email" placeholder="Email">
+    <input
+        type="password"
+        placeholder="Masukkan Password"
+    >
 
-<input type="password" placeholder="Password">
+    <a
+        href="/dashboard-user"
+        class="btn"
+        style="
+            width:100%;
+            text-align:center;
+            display:block;
+            margin-top:10px;
+        "
+    >
+        Login
+    </a>
 
-<br>
+    <div style="text-align:center;margin-top:20px">
 
-<div style="display:flex;gap:10px">
+        <p style="margin-bottom:10px;color:#666">
+            Belum punya akun?
+        </p>
 
-<a href="/dashboard-user" class="btn">
-Masuk Sebagai User
-</a>
+        <a href="/register" class="btn">
+            Daftar Akun
+        </a>
 
-<a href="/dashboard-admin" class="btn">
-Masuk Sebagai Admin
-</a>
-
-</div>
+    </div>
 
 </div>
 
