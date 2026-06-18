@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Contracts\OpenLibraryServiceInterface; // <-- TAMBAHAN: Panggil kontraknya
+use App\Contracts\OpenLibraryServiceInterface;
+use App\Models\Book; 
 
 class EbookController extends Controller
 {
-    // Ini fungsi yang kemarin untuk halaman dashboard
     public function index()
     {
         $totalEbook = 250;
@@ -17,16 +17,43 @@ class EbookController extends Controller
         return view('ebooks.index', compact('totalEbook', 'totalKategori', 'totalPengguna'));
     }
 
-    // <-- TAMBAHAN: Fungsi baru untuk mengetes API Open Library
-    public function cekBukuDariInternet(OpenLibraryServiceInterface $openLibrary)
+    public function cekBukuDariInternet(Request $request, OpenLibraryServiceInterface $openLibrary)
     {
-        // Kita coba cari buku Harry Potter menggunakan nomor ISBN-nya
-        $isbn = '9780439708180'; 
+        // Bawaannya kita set ke 'novel' agar datanya selalu banyak dan aman
+        $keyword = $request->query('search', 'novel'); 
         
-        // Memakai mesin Service buatanmu untuk mengambil data
-        $dataBuku = $openLibrary->getBookByIsbn($isbn);
+        $data = $openLibrary->searchBooks($keyword);
 
-        // Menampilkan datanya ke layar browser dalam format JSON
-        return response()->json($dataBuku);
+        if (isset($data['docs']) && count($data['docs']) > 0) {
+            $bukuTersimpan = [];
+
+            foreach ($data['docs'] as $buku) {
+                // Membuat ISBN acak jika dari sananya tidak ada
+                $isbnAsli = $buku['isbn'][0] ?? 'ISBN-OL-' . rand(100000, 999999);
+                
+                $judul = $buku['title'] ?? 'Buku Tanpa Judul';
+                $penulis = $buku['author_name'][0] ?? 'Penulis Anonim';
+                $halaman = $buku['number_of_pages_median'] ?? rand(100, 500);
+
+                $bukuBaru = Book::updateOrCreate(
+                    ['isbn' => $isbnAsli], 
+                    [
+                        'title' => $judul,
+                        'author' => $penulis,
+                        'pages' => $halaman,
+                    ]
+                );
+
+                $bukuTersimpan[] = $bukuBaru;
+            }
+
+            return response()->json([
+                'status' => 'Sukses!',
+                'pesan' => count($bukuTersimpan) . " Buku tentang '$keyword' berhasil ditarik dan disimpan.",
+                'data_tersimpan' => $bukuTersimpan
+            ]);
+        }
+
+        return response()->json(['pesan' => "Tidak ada buku tentang '$keyword' yang ditemukan di internet"], 404);
     }
 }

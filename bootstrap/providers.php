@@ -2,5 +2,5 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    App\Providers\OpenLibraryServiceProvider::class, // <-- Tambahkan baris ini
+    App\Providers\OpenLibraryServiceProvider::class, // <-- Pastikan baris ini ada
 ];

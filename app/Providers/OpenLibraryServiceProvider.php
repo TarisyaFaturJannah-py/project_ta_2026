@@ -10,7 +10,7 @@ class OpenLibraryServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Mengikat Contract dengan Service aslinya
+        // Mengikat Contract dengan Service aslinya agar dikenali oleh Laravel
         $this->app->bind(OpenLibraryServiceInterface::class, OpenLibraryService::class);
     }
 

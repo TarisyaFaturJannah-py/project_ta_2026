@@ -4,6 +4,6 @@ namespace App\Contracts;
 
 interface OpenLibraryServiceInterface
 {
-    // Fungsi untuk mencari buku berdasarkan kode ISBN
-    public function getBookByIsbn(string $isbn);
+    // Fungsi baru untuk menarik banyak buku berdasarkan kata kunci
+    public function searchBooks(string $keyword);
 }

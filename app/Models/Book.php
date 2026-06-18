@@ -9,8 +9,7 @@ class Book extends Model
 {
     use HasFactory;
 
-    // --- TAMBAHKAN BARIS INI ---
-    // Memberi izin kepada Laravel untuk mengisi 4 kolom ini secara otomatis
+    // Memberi izin (Fillable) agar Laravel bisa memasukkan data ke 4 kolom ini secara otomatis
     protected $fillable = [
         'isbn',
         'title',
