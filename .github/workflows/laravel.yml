@@ -1,10 +1,12 @@
-name: Laravel
+name: Laravel CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   laravel-tests:
@@ -17,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4' # Menggunakan PHP 8.4 untuk mendukung Symfony & Laravel terbaru
           extensions: mbstring, pdo_sqlite, sqlite3, intl, zip
           coverage: none
 
