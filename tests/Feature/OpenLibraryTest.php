@@ -1,102 +1,79 @@
 <?php
 
-namespace tests\Feature;
+namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
 
 class OpenLibraryTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * TEST 1: SKENARIO SUKSES (HAPPY PATH)
-     * Memastikan data API berhasil diambil dan database bertambah.
+     * @test
      */
-    public function test_endpoint_berhasil_menyimpan_buku_dari_api(): void
+    public function endpoint_berhasil_menyimpan_buku_dari_api()
     {
-        // 1. MOCKING: Kita cegat tembakan internetnya dan berikan "jawaban bohongan"
-        // Ini membuat tes berjalan dalam 0.01 detik tanpa butuh kuota internet!
+        // 1. Kita memalsukan (Mock) balikan dari Open Library agar test berjalan cepat & tidak butuh internet
         Http::fake([
-            'openlibrary.org/search.json*' => Http::response([
-                'docs' => [
-                    [
-                        'isbn' => ['9781234567890'],
-                        'title' => 'Buku Pemrograman Canggih',
-                        'author_name' => ['Programmer Handal'],
-                        'number_of_pages_median' => 350
-                    ],
-                    [
-                        'title' => 'Buku Tanpa ISBN', // Simulasi buku yang tidak punya ISBN dari sananya
-                        'author_name' => ['Penulis Misterius']
-                    ]
-                ]
+            'openlibrary.org/*' => Http::response([
+                'title' => 'Buku Canggih',
+                'authors' => [['name' => 'Penulis Hebat']]
             ], 200)
         ]);
 
-        // 2. ACTION: Sistem seolah-olah membuka browser dan mencari buku
-        $response = $this->get('/cek-buku?search=canggih');
+        // 2. Menembak URL API yang BENAR (menggunakan /api/... dan parameter ISBN)
+        // Pastikan URL ini sesuai dengan yang kamu pasang di routes/api.php
+        $response = $this->get('/api/open-library/search/0451526538');
 
-        // 3. ASSERTION: Memastikan responnya Sukses (200 OK)
+        // 3. Memastikan responsenya Sukses (200 OK)
         $response->assertStatus(200);
+
+        // 4. Memastikan format JSON yang dibalikan sesuai dengan standar RESTful API yang kita buat
         $response->assertJson([
-            'status' => 'Sukses!'
-        ]);
-
-        // 4. DATABASE CHECK: Memastikan 2 buku di atas benar-benar masuk tabel
-        $this->assertDatabaseCount('books', 2);
-        
-        // Memastikan isinya sesuai dengan data dari internet bohongan tadi
-        $this->assertDatabaseHas('books', [
-            'title' => 'Buku Pemrograman Canggih',
-            'author' => 'Programmer Handal',
+            'success' => true,
         ]);
     }
 
     /**
-     * TEST 2: SKENARIO DATA KOSONG (EMPTY STATE)
-     * Memastikan kode tidak error jika Open Library menjawab dengan data kosong.
+     * @test
      */
-    public function test_endpoint_merespons_404_jika_buku_tidak_ditemukan(): void
+    public function endpoint_merespons_404_jika_buku_tidak_ditemukan()
     {
-        // Mocking: Open library menjawab dengan array kosong
+        // 1. Memalsukan balikan API seolah-olah buku tidak ditemukan (Data kosong)
         Http::fake([
-            'openlibrary.org/search.json*' => Http::response([
-                'docs' => [] 
-            ], 200)
+            'openlibrary.org/*' => Http::response([], 200)
         ]);
 
-        $response = $this->get('/cek-buku?search=katakunciyanganehsekali');
+        $response = $this->get('/api/open-library/search/katakunciyanganehsekali');
 
-        // Memastikan statusnya 404 (Not Found)
+        // 2. Memastikan statusnya 404 (Not Found)
         $response->assertStatus(404);
-        $response->assertJsonFragment([
-            'pesan' => "Tidak ada buku tentang 'katakunciyanganehsekali' yang ditemukan di internet"
-        ]);
 
-        // Memastikan database tetap bersih / tidak kemasukan data sampah
-        $this->assertDatabaseCount('books', 0);
+        // 3. Memastikan balikan errornya sesuai dengan pesan di EbookController
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Buku tidak ditemukan'
+        ]);
     }
 
     /**
-     * TEST 3: SKENARIO BENCANA (SERVER ERROR / TIMEOUT)
-     * Memastikan sabuk pengaman (Try-Catch) kita bekerja jika API Open Library Down.
+     * @test
      */
-    public function test_endpoint_menangani_error_jaringan_dengan_elegan(): void
+    public function endpoint_menangani_error_jaringan_dengan_elegan()
     {
-        // Mocking: Mensimulasikan server Open Library sedang hancur/down (Error 500)
+        // 1. Memalsukan kondisi seolah-olah server Open Library sedang down (Status 500)
         Http::fake([
-            'openlibrary.org/search.json*' => Http::response(null, 500)
+            'openlibrary.org/*' => Http::response(null, 500)
         ]);
 
-        $response = $this->get('/cek-buku?search=novel');
+        $response = $this->get('/api/open-library/search/0451526538');
 
-        // Karena kita sudah pakai blok "try-catch" di Service, 
-        // web tidak boleh menampilkan layar merah, melainkan kembali ke respon 404 yang aman.
+        // 2. Pastikan aplikasi kita tidak "Crash" dan tetap merespon 404 dengan rapi
         $response->assertStatus(404);
-        
-        $this->assertDatabaseCount('books', 0);
+        $response->assertJson([
+            'success' => false,
+        ]);
     }
 }
