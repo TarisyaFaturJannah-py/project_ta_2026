@@ -9,7 +9,7 @@ class OpenLibraryTest extends TestCase
 {
     use RefreshDatabase;
 
-    // GANTI: hapus /** @test */ dan tambahkan awalan 'test_'
+    // GANTI: hapus /* @test */ dan tambahkan awalan 'test_'
     public function test_example_test_scenario()
     {
         $response = $this->get('/'); // sesuaikan dengan route Anda
